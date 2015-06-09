@@ -35,7 +35,7 @@ and iterates a trajectory"
 
 #define NMAX 128
 
-char onscreen=1,epsset=0,*outfile=NULL,setsort=1,setnoise=0;
+char onscreen=1,epsset=0,*outfile=NULL,setsort=0,setnoise=0;
 char *infile=NULL;
 unsigned int nmax=(NMAX-1);
 unsigned int verbosity=0xff;
