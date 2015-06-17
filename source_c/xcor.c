@@ -170,7 +170,7 @@ int main(int argc,char** argv)
     fprintf(stdout,"# standard deviation of sec. comp.=%e\n",var2);
   }
 
-  for (i= -tau;i<=tau;i++)
+  for (i= -(long)tau;i<=(long)tau;i++)
     if (!stout) {
       fprintf(fout,"%ld %e\n",i,corr(i)/var1/var2);
       fflush(fout);
