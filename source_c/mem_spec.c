@@ -125,7 +125,9 @@ double getcoefs(double *coef)
       break;
     for (j=0;j<=i;j++)
       help[j]=coef[j];
-    for (j=0;j<length-i-1;j++) {
+    /* the next pole uses only the first length-i-2 values (this loop ran one
+       further, reading one past the end of the data) */
+    for (j=0;j<length-i-2;j++) {
       cov[j] -= help[i]*series[j];
       series[j]=series[j+1]-help[i]*cov[j+1];
     }
