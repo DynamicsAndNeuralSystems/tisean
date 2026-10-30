@@ -35,7 +35,8 @@ RTOL_SINGLE = 1e-5
 
 # name: (list of command lines, expected exit status of the last command,
 #        timeout in seconds, relative tolerance)
-# Command lines follow the way hctsa calls each program (hctsa/Operations).
+# Command lines for the programs hctsa uses follow the way hctsa calls them
+# (hctsa/Operations).
 CASES = {
     # d2 and the programs that read its output (NL_d2, NL_GPCorrSum)
     "d2_henon": (["d2 -d1 -M1,4 -t10 -V0 henon.dat"], 0, 60, RTOL),
@@ -73,6 +74,23 @@ CASES = {
     "nstat_z_lorenz": (["nstat_z -# 5 -d5 -m3 -V0 lorenz.dat"], 0, 60, RTOL),
     # nrlazy (PP_SchreiberDenoise)
     "nrlazy_lorenz": (["nrlazy -m1,5 -d1 -i2 -v0.5 -V0 -o lorenz.laz lorenz.dat"], 0, 60, RTOL),
+
+    # Programs hctsa does not use, for bugs fixed since 3.0.1
+    # delay: the file output (-o) used the first component's delays for every
+    # component, so it differed from the stdout output
+    "delay_multivariate": (["delay -M2 -F2,2 -D1,3 -V0 henon2.dat",
+                            "delay -M2 -F2,2 -D1,3 -V0 -o henon2.del henon2.dat"], 0, 60, RTOL),
+    # mem_spec: the file and stdout outputs were normalized differently
+    "mem_spec_henon": (["mem_spec -p20 -P10 -V0 henon.dat",
+                        "mem_spec -p20 -P10 -V0 -o henon.spec henon.dat"], 0, 60, RTOL),
+    # polynom -L: closed its output file twice (aborts under glibc)
+    "polynom_cast": (["polynom -m2 -p2 -L20 -V0 -o henon.pol henon.dat"], 0, 60, RTOL),
+    # randomize: the final write called writecfile with the wrong arguments
+    "randomize_auto": (["randomize_auto_exp_random -n1 -I1 -D5 -l200 -V0 -a0.5 -S200 -s50 -z40 "
+                        "-o henon.rnd henon.dat"], 0, 60, RTOL),
+    # fsle and lyap_k -M1: read past the end of the data (seen with AddressSanitizer)
+    "fsle_henon": (["fsle -d1 -m2 -t0 -V0 -o henon.fsle henon.dat"], 0, 60, RTOL),
+    "lyap_k_m1": (["lyap_k -M1 -m1 -d1 -s20 -V0 -o henon.lyk henon.dat"], 0, 60, RTOL),
 }
 
 
@@ -80,7 +98,7 @@ def find_binaries(bindir):
     """Directories to search for the TISEAN programs, in order."""
     if bindir:
         return [Path(bindir).resolve()]
-    return [ROOT / "source_c", ROOT / "source_f"]
+    return [ROOT / "source_c", ROOT / "source_f", ROOT / "source_f" / "randomize"]
 
 
 def resolve(cmd, dirs):
@@ -105,7 +123,7 @@ def run_case(name, dirs):
         for i, cmd in enumerate(cmds):
             try:
                 proc = subprocess.run(resolve(cmd, dirs), cwd=tmp, capture_output=True,
-                                      text=True, timeout=timeout)
+                                      text=True, errors="replace", timeout=timeout)
             except subprocess.TimeoutExpired:
                 return "timeout", {}
             status = proc.returncode
