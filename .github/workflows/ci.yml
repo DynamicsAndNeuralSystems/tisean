@@ -18,10 +18,11 @@ jobs:
             cc: gcc-14
             fc: gfortran-14
             fflags: -O
-          - name: Ubuntu, GCC 14, Fortran bounds checking
+          - name: Ubuntu, GCC 14, AddressSanitizer (C) and bounds checking (Fortran)
             os: ubuntu-24.04
             cc: gcc-14
             fc: gfortran-14
+            cflags: -O1 -g -fsanitize=address -fno-omit-frame-pointer
             fflags: -O -fcheck=bounds
           - name: macOS, clang
             os: macos-latest
@@ -44,8 +45,8 @@ jobs:
 
       - name: Configure
         run: |
-          CC="${{ matrix.cc }}" FC="${FC_PATH:-${{ matrix.fc }}}" FFLAGS="${{ matrix.fflags }}" \
-            ./configure --prefix="$RUNNER_TEMP/tisean"
+          CC="${{ matrix.cc }}" FC="${FC_PATH:-${{ matrix.fc }}}" \
+            CFLAGS="${{ matrix.cflags }}" FFLAGS="${{ matrix.fflags }}" ./configure --prefix="$RUNNER_TEMP/tisean"
           grep -E '^(CC|FC) *=' Makefile
 
       - name: Build
@@ -58,4 +59,7 @@ jobs:
           test "$(ls "$RUNNER_TEMP/tisean/bin" | wc -l)" -eq 80
 
       - name: Test
+        # the programs do not free their memory before exiting, so leaks are not errors
+        env:
+          ASAN_OPTIONS: detect_leaks=0
         run: python3 tests/run_tests.py --bindir "$RUNNER_TEMP/tisean/bin"
