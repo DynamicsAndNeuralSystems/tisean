@@ -45,7 +45,7 @@ jobs:
       - name: Configure
         run: |
           CC="${{ matrix.cc }}" FC="${FC_PATH:-${{ matrix.fc }}}" FFLAGS="${{ matrix.fflags }}" \
-            ./configure --prefix="$PWD/install"
+            ./configure --prefix="$RUNNER_TEMP/tisean"
           grep -E '^(CC|FC) *=' Makefile
 
       - name: Build
@@ -54,8 +54,8 @@ jobs:
       - name: Install
         run: |
           make install
-          echo "Installed $(ls install/bin | wc -l) programs"
-          test "$(ls install/bin | wc -l)" -eq 80
+          echo "Installed $(ls "$RUNNER_TEMP/tisean/bin" | wc -l) programs"
+          test "$(ls "$RUNNER_TEMP/tisean/bin" | wc -l)" -eq 80
 
       - name: Test
-        run: python3 tests/run_tests.py --bindir install/bin
+        run: python3 tests/run_tests.py --bindir "$RUNNER_TEMP/tisean/bin"

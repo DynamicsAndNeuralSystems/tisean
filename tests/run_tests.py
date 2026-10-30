@@ -30,6 +30,8 @@ EXPECTED = ROOT / "tests" / "expected"
 
 RTOL = 1e-6
 ATOL = 1e-12
+# c1 works in single precision, so its results differ more between platforms
+RTOL_SINGLE = 1e-5
 
 # name: (list of command lines, expected exit status of the last command,
 #        timeout in seconds, relative tolerance)
@@ -44,10 +46,10 @@ CASES = {
                             0, 60, RTOL),
     # c1 and c2d (NL_c1)
     "c1_c2d_henon": (["c1 -d1 -m1 -M4 -t10 -n500 -V0 -o henon.c1 henon.dat",
-                      "c2d -a2 -V0 henon.c1"], 0, 60, RTOL),
+                      "c2d -a2 -V0 henon.c1"], 0, 60, RTOL_SINGLE),
     # used to hang: 520 points, delay 2, m = 5 gives 512 embedded points
     "c1_powerof2_nohang": (["c1 -d2 -m1 -M5 -t1 -n100 -l520 -V0 -o h520.c1 henon.dat"],
-                           0, 60, RTOL),
+                           0, 60, RTOL_SINGLE),
     # false_nearest (NL_FNN)
     "fnn_lorenz_delay5": (["false_nearest -d5 -m1 -M1,6 -t10 -V0 lorenz.dat"], 0, 60, RTOL),
     "fnn_henon_ties": (["false_nearest -d1 -m1 -M1,5 -t1 -V0 henon_q1.dat"], 0, 60, RTOL),

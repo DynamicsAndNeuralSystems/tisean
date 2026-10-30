@@ -50,7 +50,7 @@ python3 tests/run_tests.py                       # after make, using the program
 python3 tests/run_tests.py --bindir ~/.local/bin # or the installed programs
 ```
 
-The tests run the programs with the command lines hctsa uses and compare their output with reference output in `tests/expected/`, to a relative tolerance of 1e-6.
+The tests run the programs with the command lines hctsa uses and compare their output with reference output in `tests/expected/`, to a relative tolerance of 1e-6 (1e-5 for the single-precision c1).
 Nine of the sixteen cases fail on TISEAN 3.0.1, one or more for each fix.
 
 ## Documentation
