@@ -1,7 +1,7 @@
 /*
  *   This file is part of TISEAN
  *
- *   Copyright (c) 1998-2007 Rainer Hegger, Holger Kantz, Thomas Schreiber
+ *   Copyright (c) 1998-2015 Rainer Hegger, Holger Kantz, Thomas Schreiber
  *
  *   TISEAN is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
   Feb 19, 2007: changed meaning of -f flag and added -P flag to be 
                 consistent with spectrum
   Dec 5, 2006: Seg fault when poles > length;
+  Mar 15, 2007: normalization now the same as in spectrum
  */
 #include <stdio.h>
 #include <string.h>
@@ -216,7 +217,7 @@ int main(int argc,char **argv)
       fdt=i/(2.0*out);
       pow_spec=powcoef(fdt,cof);
       fprintf(fout,"%e %e\n",fdt*samplingrate,
-	      pm/pow_spec/sqrt((double)length));
+	      pm/pow_spec/(double)length);
       fflush(fout);
     }
     fclose(fout);
@@ -233,7 +234,7 @@ int main(int argc,char **argv)
       fdt=i/(2.0*out);
       pow_spec=powcoef(fdt,cof);
       fprintf(stdout,"%e %e\n",fdt*samplingrate,
-	      pm/pow_spec/*/sqrt((double)length)*/);
+	      pm/pow_spec/(double)length);
     }
   }
   
