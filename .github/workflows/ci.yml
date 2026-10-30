@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu, GCC 14
+            os: ubuntu-24.04
+            cc: gcc-14
+            fc: gfortran-14
+            fflags: -O
+          - name: Ubuntu, GCC 14, Fortran bounds checking
+            os: ubuntu-24.04
+            cc: gcc-14
+            fc: gfortran-14
+            fflags: -O -fcheck=bounds
+          - name: macOS, clang
+            os: macos-latest
+            cc: cc
+            fc: gfortran
+            fflags: -O
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install compilers (Ubuntu)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y gcc-14 gfortran-14
+
+      - name: Find gfortran (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          fc=$(command -v gfortran || ls "$(brew --prefix)"/bin/gfortran-* 2>/dev/null | sort -V | tail -1)
+          if [ -z "$fc" ]; then brew install gcc; fc=$(ls "$(brew --prefix)"/bin/gfortran-* | sort -V | tail -1); fi
+          echo "FC_PATH=$fc" >> "$GITHUB_ENV"
+
+      - name: Configure
+        run: |
+          CC="${{ matrix.cc }}" FC="${FC_PATH:-${{ matrix.fc }}}" FFLAGS="${{ matrix.fflags }}" \
+            ./configure --prefix="$PWD/install"
+          grep -E '^(CC|FC) *=' Makefile
+
+      - name: Build
+        run: make
+
+      - name: Install
+        run: |
+          make install
+          echo "Installed $(ls install/bin | wc -l) programs"
+          test "$(ls install/bin | wc -l)" -eq 80
+
+      - name: Test
+        run: python3 tests/run_tests.py --bindir install/bin
